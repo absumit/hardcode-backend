@@ -20,6 +20,8 @@ const airouter = require('./routes/gemini');
 
 const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
 
+app.set('trust proxy', 1);
+
 app.use(cors({
   origin: clientOrigin,
   credentials: true

@@ -15,16 +15,39 @@ const getSafeUser = (dbUser) => ({
     updatedAt: dbUser.updatedAt,
 });
 
-const getCookieOptions = () => {
+const getCookieBaseOptions = () => {
     const isProduction = process.env.NODE_ENV === 'production';
+    const cookieDomain = process.env.AUTH_COOKIE_DOMAIN;
 
-    return {
+    const options = {
         httpOnly: true,
         secure: isProduction,
         sameSite: isProduction ? 'none' : 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
     };
+
+    // Helps with some cross-site cookie scenarios in modern Chromium browsers.
+    if (isProduction) {
+        options.partitioned = true;
+    }
+
+    if (cookieDomain) {
+        options.domain = cookieDomain;
+    }
+
+    return options;
 };
+
+const getCookieOptions = () => ({
+    ...getCookieBaseOptions(),
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+
+const getCookieClearOptions = () => ({
+    ...getCookieBaseOptions(),
+    maxAge: undefined,
+    expires: new Date(0),
+});
 
 const dashboard = async (req,res)=>{
     res.send("into the dashboard")
@@ -85,7 +108,7 @@ const login = async (req,res)=>{
 
 const logout = async (req,res)=>{
      
-    res.clearCookie('token', getCookieOptions())
+    res.clearCookie('token', getCookieClearOptions())
     res.status(200).json({ message: "Logged out successfully", success: true });
 }
 
